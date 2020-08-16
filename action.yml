@@ -1,11 +1,13 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: 'stale-toggles'
+description: 'Flag stale optimizely toggles'
+author: 'Drew Wyatt <drew.j.wyatt@gmail.com>'
 inputs:
-  milliseconds: # change this
+  project:
     required: true
-    description: 'input description here'
-    default: 'default value if applicable'
+    description: 'optimizely project id'
+  token:
+    required: true
+    description: 'optimizely personal access token'
 runs:
   using: 'node12'
   main: 'dist/index.js'

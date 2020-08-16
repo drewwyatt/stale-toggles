@@ -1,14 +1,14 @@
 import * as core from '@actions/core'
-import { wait } from './wait'
+import { getFeatures } from './optimizely'
 
-async function run(): Promise<void> {
+const run = async () => {
   try {
-    const ms: string = core.getInput('milliseconds')
-    core.debug(`Waiting ${ms} milliseconds ...`) // debug is only output if you set the secret `ACTIONS_RUNNER_DEBUG` to true
-
-    core.debug(new Date().toTimeString())
-    await wait(parseInt(ms, 10))
-    core.debug(new Date().toTimeString())
+    const project = core.getInput('project', { required: true })
+    const token = core.getInput('token', { required: true })
+    core.debug(`Project: ${project}`)
+    core.debug(`Token: ${token}`)
+    const features = await getFeatures(project, token)
+    core.debug(`features: ${features}`)
 
     core.setOutput('time', new Date().toTimeString())
   } catch (error) {
