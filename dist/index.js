@@ -868,20 +868,22 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const core = __importStar(__webpack_require__(470));
+const core_1 = __webpack_require__(470);
+const inputs = __importStar(__webpack_require__(842));
 const optimizely_1 = __webpack_require__(713);
+const listInputs = () => {
+    for (const key of Object.keys(inputs)) {
+        core_1.debug(`[input][${key}] ${inputs[key]}`);
+    }
+};
 const run = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const project = core.getInput('project', { required: true });
-        const token = core.getInput('token', { required: true });
-        core.debug(`Project: ${project}`);
-        core.debug(`Token: ${token}`);
-        const features = yield optimizely_1.getFeatures(project, token);
-        core.debug(`features: ${features}`);
-        core.setOutput('time', new Date().toTimeString());
+        listInputs();
+        const features = yield optimizely_1.getFeatures(inputs.PROJECT, inputs.TOKEN);
+        core_1.setOutput('features', features);
     }
     catch (error) {
-        core.setFailed(error.message);
+        core_1.setFailed(error.message);
     }
 });
 run();
@@ -3586,6 +3588,29 @@ module.exports = Cancel;
 /***/ (function(module) {
 
 module.exports = require("url");
+
+/***/ }),
+
+/***/ 842:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.TOKEN = exports.PROJECT = exports.DAYS_UNTIL_STALE = void 0;
+const core_1 = __webpack_require__(470);
+const getDaysUntilStale = () => {
+    const rawInput = core_1.getInput('days-until-stale');
+    const input = rawInput === '' ? 30 : Number(rawInput);
+    if (!Number.isInteger(input)) {
+        throw new Error(`input: "days-until-stale" must be an integer. Found: "${rawInput}"`);
+    }
+    return Number(input);
+};
+exports.DAYS_UNTIL_STALE = getDaysUntilStale();
+exports.PROJECT = core_1.getInput('project', { required: true });
+exports.TOKEN = core_1.getInput('token', { required: true });
+
 
 /***/ }),
 

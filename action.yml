@@ -2,6 +2,10 @@ name: 'stale-toggles'
 description: 'Flag stale optimizely toggles'
 author: 'Drew Wyatt <drew.j.wyatt@gmail.com>'
 inputs:
+  days-until-stale:
+    required: false
+    description: 'number of days after a feature has been toggled on before it is marked as stale'
+    default: 30
   project:
     required: true
     description: 'optimizely project id'

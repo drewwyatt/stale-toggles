@@ -1,18 +1,20 @@
-import * as core from '@actions/core'
+import { debug, setOutput, setFailed } from '@actions/core'
+import * as inputs from './inputs'
 import { getFeatures } from './optimizely'
+
+const listInputs = () => {
+  for (const key of Object.keys(inputs)) {
+    debug(`[input][${key}] ${inputs[key as keyof typeof inputs]}`)
+  }
+}
 
 const run = async () => {
   try {
-    const project = core.getInput('project', { required: true })
-    const token = core.getInput('token', { required: true })
-    core.debug(`Project: ${project}`)
-    core.debug(`Token: ${token}`)
-    const features = await getFeatures(project, token)
-    core.debug(`features: ${features}`)
-
-    core.setOutput('time', new Date().toTimeString())
+    listInputs()
+    const features = await getFeatures(inputs.PROJECT, inputs.TOKEN)
+    setOutput('features', features)
   } catch (error) {
-    core.setFailed(error.message)
+    setFailed(error.message)
   }
 }
 
