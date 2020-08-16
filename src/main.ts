@@ -1,4 +1,6 @@
 import { setOutput, setFailed, info } from '@actions/core'
+import add from 'date-fns/add'
+import isAfter from 'date-fns/isAfter'
 import * as inputs from './inputs'
 import { getFeatures } from './optimizely'
 
@@ -12,7 +14,7 @@ const run = async () => {
       return
     }
 
-    info(`${features.length} features retrieved.`)
+    info(`found ${features.length} features`)
     info('getting primary environment...')
     const primaryEnvironment = Object.keys(features[0].environments).reduce<
       string | null
@@ -42,9 +44,20 @@ const run = async () => {
       return
     }
 
-    info(`found ${enabledFeatures.length} enabled features...`)
+    info(`found ${enabledFeatures.length} enabled features`)
+    info(
+      `checking for features enabled for ${inputs.DAYS_UNTIL_STALE} days or more...`,
+    )
 
-    setOutput('features', enabledFeatures)
+    const stale = enabledFeatures.filter(f =>
+      isAfter(
+        new Date(),
+        add(new Date(f.last_modified), { days: inputs.DAYS_UNTIL_STALE }),
+      ),
+    )
+
+    info(`found ${stale.length} stale features`)
+    setOutput('features', stale)
   } catch (error) {
     setFailed(error.message)
   }
