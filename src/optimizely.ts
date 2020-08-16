@@ -1,10 +1,17 @@
 import axios from 'axios'
 
 type DateString = string
+
+type RolloutRule = {
+  audience_conditions: string
+  enabled: boolean
+  percentage_included: number
+}
+
 type Environment = {
   id: number
   is_primary: boolean
-  rollout_rules: unknown
+  rollout_rules: RolloutRule[]
 }
 
 type Feature = {

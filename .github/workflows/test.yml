@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: yarn
-      - run: yarn run all
+      - run: yarn run build
   test: # make sure the action works on a clean machine without building
     runs-on: ubuntu-latest
     steps:
