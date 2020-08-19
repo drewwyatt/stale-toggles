@@ -12,9 +12,9 @@ const run = async () => {
       getFeatures(inputs.PROJECT, inputs.TOKEN),
       TE.chain(toEnabledFeatures),
       TE.chain(toStaleFeatures),
-      TE.chain(features => {
+      TE.map(features => {
         setOutput('features', features)
-        return TE.right(features)
+        return features
       }),
       TE.mapLeft(e => {
         pipe(
