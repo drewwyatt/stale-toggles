@@ -1,54 +1,35 @@
 import axios from 'axios'
+import * as E from 'fp-ts/Either'
+import { pipe } from 'fp-ts/pipeable'
+import * as TE from 'fp-ts/TaskEither'
+import { Features } from './models'
 
-type DateString = string
-
-type RolloutRule = {
-  audience_conditions: string
-  enabled: boolean
-  percentage_included: number
-}
-
-type Environment = {
-  id: number
-  is_primary: boolean
-  rollout_rules: RolloutRule[]
-}
-
-type Feature = {
-  archived: boolean
-  created: DateString
-  description: string
-  environments: Record<string, Environment>
-  id: number
-  key: string
-  last_modified: DateString
-  name: string
-  project_id: number
-  variables: unknown[]
-}
-
-type OptimizelyError = {
-  code: string
-  message: string
-  uuid: string
-}
-
-export const getFeatures = async (project: string, token: string) => {
-  const respose = await axios.get<Feature[]>(
-    `https://api.optimizely.com/v2/features?project_id=${project}&per_page=99`,
-    {
-      headers: {
-        authorization: `Bearer ${token}`,
-      },
-      responseType: 'json',
-    },
+const makeRequest = (project: string, token: string) =>
+  TE.tryCatch(
+    async () =>
+      axios.get(
+        `https://api.optimizely.com/v2/features?project_id=${project}&per_page=99`,
+        {
+          headers: {
+            authorization: `Bearer ${token}`,
+          },
+          responseType: 'json',
+        },
+      ),
+    err => new Error(String(err)), // TODO: decode error message
   )
 
-  if (respose.status === 200) {
-    return respose.data
-  }
-
-  throw new Error(
-    ((respose.data as unknown) as OptimizelyError)?.message ?? 'uh oh',
+export const getFeatures = (...params: Parameters<typeof makeRequest>) =>
+  pipe(
+    makeRequest(...params),
+    TE.map(r => r.data),
+    TE.chain(r =>
+      pipe(
+        Features.decode(r),
+        E.mapLeft(e => new Error(String(e))),
+        TE.fromEither,
+      ),
+    ),
   )
-}
+
+// const

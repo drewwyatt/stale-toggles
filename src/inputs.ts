@@ -9,7 +9,7 @@ const getDaysUntilStale = () => {
     )
   }
 
-  return Number(input)
+  return input
 }
 
 export const DAYS_UNTIL_STALE = getDaysUntilStale()

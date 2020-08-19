@@ -1,63 +1,37 @@
 import { setOutput, setFailed, info } from '@actions/core'
-import add from 'date-fns/add'
-import isAfter from 'date-fns/isAfter'
+import { fold } from 'fp-ts/Either'
+import { pipe } from 'fp-ts/pipeable'
+import * as TE from 'fp-ts/TaskEither'
 import * as inputs from './inputs'
-import { getFeatures } from './optimizely'
+import { EarlyExit } from './models'
+import { getFeatures, toEnabledFeatures, toStaleFeatures } from './tasks'
 
 const run = async () => {
   try {
-    info(`getting Features for project "${inputs.PROJECT}"...`)
-    const features = await getFeatures(inputs.PROJECT, inputs.TOKEN)
-    if (features.length === 0) {
-      info('no features found. exiting...')
-      setOutput('features', [])
-      return
-    }
-
-    info(`found ${features.length} features`)
-    info('getting primary environment...')
-    const primaryEnvironment = Object.keys(features[0].environments).reduce<
-      string | null
-    >((acc, key) => {
-      if (acc !== null) {
-        return acc
-      }
-
-      return features[0].environments[key].is_primary ? key : null
-    }, null)
-
-    if (primaryEnvironment === null) {
-      throw new Error(`could not find a primary environment`)
-    }
-
-    info(`primary environment found: "${primaryEnvironment}"`)
-    info('getting enabled features...')
-    const enabledFeatures = features.filter(
-      f =>
-        f.environments[primaryEnvironment].rollout_rules.findIndex(
-          r => r.enabled,
-        ) > -1,
-    )
-    if (enabledFeatures.length === 0) {
-      info('no enabled features. exiting...')
-      setOutput('features', [])
-      return
-    }
-
-    info(`found ${enabledFeatures.length} enabled features`)
-    info(
-      `checking for features enabled for ${inputs.DAYS_UNTIL_STALE} days or more...`,
-    )
-
-    const stale = enabledFeatures.filter(f =>
-      isAfter(
-        new Date(),
-        add(new Date(f.last_modified), { days: inputs.DAYS_UNTIL_STALE }),
-      ),
-    )
-
-    info(`found ${stale.length} stale features`)
-    setOutput('features', stale)
+    pipe(
+      getFeatures(inputs.PROJECT, inputs.TOKEN),
+      TE.chain(toEnabledFeatures),
+      TE.chain(toStaleFeatures),
+      TE.chain(features => {
+        setOutput('features', features)
+        return TE.right(features)
+      }),
+      TE.mapLeft(e => {
+        pipe(
+          EarlyExit.decode(e),
+          fold(
+            // TODO: do other error handling
+            msg => setFailed(String(msg)),
+            reason => {
+              // everything is cool
+              // EarlyExit just means no work to do
+              info(reason)
+              setOutput('feature', [])
+            },
+          ),
+        )
+      }),
+    )()
   } catch (error) {
     setFailed(error.message)
   }
