@@ -24,7 +24,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@actions/core": "^1.2.4",
+    "@actions/core": "^1.2.6",
     "axios": "^0.19.2",
     "date-fns": "^2.15.0",
     "fp-ts": "^2.8.1",
