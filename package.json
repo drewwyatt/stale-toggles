@@ -25,7 +25,7 @@
   "license": "MIT",
   "dependencies": {
     "@actions/core": "^1.2.4",
-    "axios": "^0.19.2",
+    "axios": "^0.21.0",
     "date-fns": "^2.15.0",
     "fp-ts": "^2.8.1",
     "io-ts": "^2.2.9"
